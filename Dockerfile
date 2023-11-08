@@ -13,8 +13,7 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     && rm -rf /var/lib/apt/lists/*
 
 # bootstrap rosdep
-RUN rosdep init && \
-  rosdep update --rosdistro $ROS_DISTRO
+RUN rosdep init && rosdep update --rosdistro $ROS_DISTRO
 
 # setup colcon mixin and metadata
 RUN colcon mixin add default \
@@ -28,3 +27,16 @@ RUN colcon mixin add default \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-ros-base=0.10.0-1* \
     && rm -rf /var/lib/apt/lists/*
+
+# create workspace, clone repositories, install dependencies, and build
+RUN mkdir -p /root/ros2_ws/src && \
+    cd /root/ros2_ws/src && \
+    git clone https://github.com/hornet0018/switchbot_ros2.git && \
+    git clone https://github.com/hornet0018/udco2s_ros2.git && \
+    git clone -b humble https://github.com/micro-ROS/micro_ros_setup.git && \
+    cd .. && \
+    rosdep install --from-paths src --ignore-src -y && \
+    colcon build
+
+# source the workspace setup file
+CMD ["/bin/bash", "-c", "source /root/ros2_ws/install/setup.bash && /bin/bash"]
