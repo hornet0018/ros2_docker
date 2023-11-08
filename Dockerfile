@@ -1,27 +1,30 @@
-#!/bin/bash -e 
+# This is an auto generated Dockerfile for ros:ros-base
+# generated from docker_images_ros2/create_ros_image.Dockerfile.em
+FROM ros:humble-ros-core-jammy
 
-# ------------ apt-getリポジトリの追加
-apt-get install curl gnupg lsb-release -y
-curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+# install bootstrap tools
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    build-essential \
+    git \
+    python3-colcon-common-extensions \
+    python3-colcon-mixin \
+    python3-rosdep \
+    python3-vcstool \
+    && rm -rf /var/lib/apt/lists/*
 
-# ------------ リポジトリをsource listに追加
-echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(source /etc/os-release && echo $UBUNTU_CODENAME) main" | tee /etc/apt/sources.list.d/ros2.list > /dev/null
+# bootstrap rosdep
+RUN rosdep init && \
+  rosdep update --rosdistro $ROS_DISTRO
 
-# ------------ ROS2インストール
-apt-get update
-apt-get install ros-humble-desktop -y
+# setup colcon mixin and metadata
+RUN colcon mixin add default \
+      https://raw.githubusercontent.com/colcon/colcon-mixin-repository/master/index.yaml && \
+    colcon mixin update && \
+    colcon metadata add default \
+      https://raw.githubusercontent.com/colcon/colcon-metadata-repository/master/index.yaml && \
+    colcon metadata update
 
-# ------------ 環境設定
-echo "source /opt/ros/humble/setup.bash" >> ~/.bashrc
-
-# ------------ ワークスペースの作成
-apt-get install python3-colcon-common-extensions -y
-mkdir -p ~/ros2_ws/src
-cd ~/ros2_ws/ && colcon build
-
-# ------------ Gazeboのインストール
-apt-get install gazebo -y
-apt-get install ros-humble-gazebo-* -y
-
-# ------------ 環境設定を反映
-source ~/.bashrc
+# install ros2 packages
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ros-humble-ros-base=0.10.0-1* \
+    && rm -rf /var/lib/apt/lists/*
