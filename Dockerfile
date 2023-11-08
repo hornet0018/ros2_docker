@@ -1,3 +1,5 @@
+# This is an auto generated Dockerfile for ros:ros-base
+# generated from docker_images_ros2/create_ros_image.Dockerfile.em
 FROM ros:humble-ros-core-jammy
 
 # install bootstrap tools
@@ -10,8 +12,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     python3-vcstool \
     && rm -rf /var/lib/apt/lists/*
 
-# initialize rosdep if it hasn't been already initialized
-RUN if [ ! -e /etc/ros/rosdep/sources.list.d/20-default.list ]; then rosdep init; fi && \
+# bootstrap rosdep
+RUN rosdep init && \
   rosdep update --rosdistro $ROS_DISTRO
 
 # setup colcon mixin and metadata
@@ -26,17 +28,3 @@ RUN colcon mixin add default \
 RUN apt-get update && apt-get install -y --no-install-recommends \
     ros-humble-ros-base=0.10.0-1* \
     && rm -rf /var/lib/apt/lists/*
-
-WORKDIR /ros2_ws
-RUN mkdir src
-
-# If you have ROS 2 packages to add to the workspace, use the COPY command
-# COPY ./my_ros2_package /ros2_ws/src/my_ros2_package
-
-# Install dependencies with rosdep
-# RUN rosdep install --from-paths src --ignore-src --rosdistro humble -y
-
-# Build the workspace with colcon
-# RUN /bin/bash -c ". /opt/ros/$ROS_DISTRO/setup.bash; colcon build"
-
-CMD ["/bin/bash", "-c", "source /ros2_ws/install/setup.bash && /bin/bash"]
