@@ -1,56 +1,34 @@
-# ROS 2 Humble Hawksbill の公式イメージをベースにする
+# Use ROS 2 Humble Hawksbill base image
 FROM ros:humble-ros-base
 
-# 必要なパッケージのインストール
+# Install development tools and ROS 2 build tools
 RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    git \
     python3-colcon-common-extensions \
     python3-rosdep \
-    # キャッシュされたファイルを削除してイメージサイズを減らす
+    python3-vcstool \
     && rm -rf /var/lib/apt/lists/*
 
-# rosdep を初期化してアップデート
-RUN rosdep init && rosdep update
+# Initialize and update rosdep
+# Since the base image already has rosdep initialized, we only need to update it
+RUN rosdep update
 
-# ワークスペースの作成
+# Create a ROS 2 workspace
 WORKDIR /ros2_ws
 RUN mkdir src
 
-# パッケージの依存関係をインストール
-# ここでは、まだsrcフォルダにROS 2パッケージはないので、このステップは省略します。
-# 実際のプロジェクトで必要なパッケージを含める場合、rosdep install コマンドを実行して依存関係をインストールします。
+# Copy your ROS 2 package source here (assumed to be done via Docker build context)
 
-# ワークスペースをビルド
-# ここでも、まだsrcフォルダにパッケージがないため、ビルドするものはありません。
-# 実際のプロジェクトでビルドを行うには、パッケージをsrcフォルダに追加する必要があります。
-RUN /bin/bash -c ". /opt/ros/humble/setup.bash; colcon build"
+# Install dependencies with rosdep
+# Here we assume that you have packages in your src directory
+# If you don't have packages yet, comment out this line
+# RUN rosdep install --from-paths src --ignore-src --rosdistro humble -y
 
-# コンテナ起動時にワークスペースの環境をソースする
-CMD ["/bin/bash", "-c", "source /ros2_ws/install/setup.bash && /bin/bash"]
-# ROS 2 Humble Hawksbill の公式イメージをベースにする
-FROM ros:humble-ros-base
+# Build the workspace with colcon
+# If you don't have packages yet, comment out this line
+# RUN /bin/bash -c ". /opt/ros/humble/setup.bash; colcon build"
 
-# 必要なパッケージのインストール
-RUN apt-get update && apt-get install -y \
-    python3-colcon-common-extensions \
-    python3-rosdep \
-    # キャッシュされたファイルを削除してイメージサイズを減らす
-    && rm -rf /var/lib/apt/lists/*
-
-# rosdep を初期化してアップデート
-RUN rosdep init && rosdep update
-
-# ワークスペースの作成
-WORKDIR /ros2_ws
-RUN mkdir src
-
-# パッケージの依存関係をインストール
-# ここでは、まだsrcフォルダにROS 2パッケージはないので、このステップは省略します。
-# 実際のプロジェクトで必要なパッケージを含める場合、rosdep install コマンドを実行して依存関係をインストールします。
-
-# ワークスペースをビルド
-# ここでも、まだsrcフォルダにパッケージがないため、ビルドするものはありません。
-# 実際のプロジェクトでビルドを行うには、パッケージをsrcフォルダに追加する必要があります。
-RUN /bin/bash -c ". /opt/ros/humble/setup.bash; colcon build"
-
-# コンテナ起動時にワークスペースの環境をソースする
+# Source the workspace
 CMD ["/bin/bash", "-c", "source /ros2_ws/install/setup.bash && /bin/bash"]
