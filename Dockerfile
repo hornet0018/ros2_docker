@@ -1,7 +1,7 @@
-# Use ROS 2 Humble Hawksbill base image
+# ROS 2 Humble Hawksbillの公式ベースイメージを使用
 FROM ros:humble-ros-base
 
-# Install development tools and ROS 2 build tools
+# 必要なパッケージのインストール
 RUN apt-get update && apt-get install -y \
     build-essential \
     cmake \
@@ -11,24 +11,20 @@ RUN apt-get update && apt-get install -y \
     python3-vcstool \
     && rm -rf /var/lib/apt/lists/*
 
-# Initialize and update rosdep
-# Since the base image already has rosdep initialized, we only need to update it
+# rosdepを更新（初期化はベースイメージで既に行われている）
 RUN rosdep update
 
-# Create a ROS 2 workspace
+# ワークスペースのディレクトリを作成
 WORKDIR /ros2_ws
 RUN mkdir src
 
-# Copy your ROS 2 package source here (assumed to be done via Docker build context)
-
-# Install dependencies with rosdep
-# Here we assume that you have packages in your src directory
-# If you don't have packages yet, comment out this line
+# パッケージの依存関係をインストール
+# srcディレクトリにパッケージがある場合は、以下の行のコメントを外して実行する
 # RUN rosdep install --from-paths src --ignore-src --rosdistro humble -y
 
-# Build the workspace with colcon
-# If you don't have packages yet, comment out this line
+# ワークスペースをビルド
+# srcディレクトリにパッケージがある場合は、以下の行のコメントを外して実行する
 # RUN /bin/bash -c ". /opt/ros/humble/setup.bash; colcon build"
 
-# Source the workspace
+# シェルスクリプト実行時にワークスペース環境をソースする
 CMD ["/bin/bash", "-c", "source /ros2_ws/install/setup.bash && /bin/bash"]
