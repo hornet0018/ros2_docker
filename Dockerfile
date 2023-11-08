@@ -1,5 +1,3 @@
-# This is an auto generated Dockerfile for ros:ros-base
-# generated from docker_images_ros2/create_ros_image.Dockerfile.em
 FROM ros:humble-ros-core-jammy
 
 # install bootstrap tools
@@ -22,15 +20,14 @@ RUN colcon mixin add default \
     colcon metadata add default \
       https://raw.githubusercontent.com/colcon/colcon-metadata-repository/master/index.yaml && \
     colcon metadata update
-    
-# install ros2 packages
+
+# install ros2 desktop packages which include ament_cmake
 RUN apt-get update && apt-get install -y --no-install-recommends \
-    ros-humble-ros-base=0.10.0-1* \
+    ros-humble-desktop=0.10.0-1* \
     && rm -rf /var/lib/apt/lists/*
 
 # create workspace, clone repositories, install dependencies, and build
-RUN apt-get update && \
-    mkdir -p /root/ros2_ws/src && \
+RUN mkdir -p /root/ros2_ws/src && \
     cd /root/ros2_ws/src && \
     git clone https://github.com/hornet0018/switchbot_ros2.git && \
     git clone https://github.com/hornet0018/udco2s_ros2.git && \
@@ -39,5 +36,4 @@ RUN apt-get update && \
     rosdep install --from-paths src --ignore-src -y && \
     colcon build
 
-# source the workspace setup file
 CMD ["/bin/bash", "-c", "source /root/ros2_ws/install/setup.bash && /bin/bash"]
